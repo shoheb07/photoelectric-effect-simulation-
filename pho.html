@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Adaptive Photoelectric Effect</title>
+<style>
+body { background:#020617; color:white; font-family:Arial; text-align:center; }
+canvas { background:black; border:2px solid #38bdf8; margin-top:10px; }
+.panel { margin-top:10px; }
+</style>
+</head>
+
+<body>
+
+<h2>Adaptive Photoelectric Effect (PhET-Style)</h2>
+
+<div class="panel">
+  Frequency
+  <input type="range" min="1" max="10" value="2" id="freq">
+  Intensity
+  <input type="range" min="1" max="10" value="5" id="int">
+</div>
+
+<p id="hint"></p>
+
+<canvas id="c" width="720" height="300"></canvas>
+
+<script>
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+
+const threshold = 4;
+let electrons = [];
+let mistakeCount = 0;
+
+function hint(text, color="yellow") {
+  const h = document.getElementById("hint");
+  h.style.color = color;
+  h.innerText = text;
+}
+
+function emitElectron(speed) {
+  electrons.push({ x:160, y:150+Math.random()*30, v:speed });
+}
+
+function animate() {
+  ctx.clearRect(0,0,c.width,c.height);
+
+  const f = +freq.value;
+  const I = +int.value;
+
+  // Metal
+  ctx.fillStyle="#64748b";
+  ctx.fillRect(80,100,80,100);
+
+  // Light
+  ctx.strokeStyle=f>=threshold?"#22c55e":"#fde047";
+  ctx.beginPath();
+  ctx.moveTo(0,150);
+  ctx.lineTo(80,150);
+  ctx.stroke();
+
+  // Adaptive logic
+  if (f < threshold) {
+    hint("No electrons. Increase frequency.", "orange");
+    if (I > 7) mistakeCount++;
+  } else {
+    hint("Electrons emitted! Observe speed.", "#22c55e");
+    if (Math.random() < I*0.04) {
+      emitElectron((f-threshold)*1.5);
+    }
+  }
+
+  if (mistakeCount > 50) {
+    hint("Intensity controls number, frequency controls energy.", "red");
+  }
+
+  // Draw electrons
+  ctx.fillStyle="#22c55e";
+  electrons.forEach(e=>{
+    e.x+=e.v;
+    ctx.beginPath();
+    ctx.arc(e.x,e.y,4,0,Math.PI*2);
+    ctx.fill();
+  });
+
+  electrons = electrons.filter(e=>e.x<c.width);
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
